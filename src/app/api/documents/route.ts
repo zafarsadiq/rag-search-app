@@ -110,7 +110,7 @@ export async function GET(req: Request) {
         file_type: doc.metadata.mimetype,
         file_size: doc.metadata.size,
         file_url: data.publicUrl,
-        upload_date: doc.uploaded_at
+        upload_date: doc.created_at
       }
     })
     return NextResponse.json({ formatedDocuments });
