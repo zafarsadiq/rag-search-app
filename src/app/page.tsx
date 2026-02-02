@@ -18,7 +18,7 @@ export default function Home() {
       const res = await fetch('/api/search', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ query, score: acceptableScore.current.value }) 
+        body: JSON.stringify({ query, score: acceptableScore.current?.value }) 
       });
       const data = await res.json();
       if (data.error) {
