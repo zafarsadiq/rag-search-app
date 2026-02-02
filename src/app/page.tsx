@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Navigation from '@/components/Navigation';
 
 export default function Home() {
@@ -7,6 +7,7 @@ export default function Home() {
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [sources, setSources] = useState<any[]>([]);
+  const acceptableScore = useRef<HTMLInputElement>(null);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -17,7 +18,7 @@ export default function Home() {
       const res = await fetch('/api/search', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ query }) 
+        body: JSON.stringify({ query, score: acceptableScore.current.value }) 
       });
       const data = await res.json();
       if (data.error) {
@@ -54,6 +55,12 @@ export default function Home() {
             onKeyDown={handleKeyPress}
             rows={4}
           />
+          <label className='block'>Acceptable Score:
+            <input
+              placeholder='0.5'
+              className="w-20 mt-4 ml-1.5 p-4 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              ref={acceptableScore} ></input>
+          </label>
           <button 
             onClick={handleSearch}
             className="mt-4 bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"

@@ -13,7 +13,8 @@ const agent = new Agent({
 
 export async function POST(req: Request) {
     try {
-        const { query } = await req.json();
+        const { query, score } = await req.json();
+        const acceptable_score = score == '' ? 0.5 : parseFloat(score);
 
         // Find similar documents using vector similarity search
         // The match_documents function finds the 5 most similar chunks
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
         });
         // Combine retrieved chunks into context
         // These chunks will be used as context for the AI to generate an answer
-        const context = result.hits.filter(res => res._score > 0.5).map((res:any) => res.fields.chunk_text);
+        const context = result.hits.filter(res => res._score >= acceptable_score).map((res:any) => res.fields.chunk_text);
         // Generate answer using OpenAI with retrieved context
         // This is the "Generation" part of RAG
         const completion = await agent.generate(query, {
