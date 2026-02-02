@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { Pinecone } from '@pinecone-database/pinecone';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
@@ -7,6 +8,7 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || anonKey;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 const supabase = createClient(url, publishableKey);
 const supabaseStorage = createClient(url, serviceKey);
+const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
 
 export async function GET(req: Request) {
   try {
@@ -127,16 +129,11 @@ export async function DELETE(req: Request) {
     // Delete file from storage
    await supabaseStorage.storage.from('rag-search-app').remove([name]);
 
-    // Delete all chunks from database
-   /*  const { error } = await supabase
-      .from('rag-search-app')
-      .delete()
-      .eq('metadata->>document_id', id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    } */
-
+   //delete embedded data
+   const namespace = pc.index("rag-search-app", "https://rag-search-app-psm6fwc.svc.aped-4627-b74a.pinecone.io").namespace("__default__");
+    await namespace.deleteMany({
+      document: { $eq: name },
+    });
     return NextResponse.json({ success: true, fileDeleted: !!name });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

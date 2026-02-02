@@ -96,7 +96,8 @@ export async function POST(req: Request) {
                 id: `${documentID}-${i}`,
                 chunk_text: chunk.text,
                 text: chunk.text,
-                persona: ['developer', 'business owner', 'agency'][Math.round((Math.random()*100))%3]
+                persona: ['developer', 'business owner', 'agency'][Math.round((Math.random()*100))%3],
+                document: filePath
             }
         }));
         return NextResponse.json({ success: true, documentID, uploadDate, filePath, urlData, chunks: chunks.length })

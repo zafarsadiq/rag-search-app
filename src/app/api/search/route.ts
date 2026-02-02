@@ -1,7 +1,15 @@
 import { Pinecone } from '@pinecone-database/pinecone'
 import { NextResponse } from 'next/server';
+import { Agent } from "@mastra/core/agent";
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
+
+const agent = new Agent({
+  id: "my-agent",
+  name: "My Agent",
+  instructions: "You are a helpful assistant. Use the provided context to answer questions. If the answer is not in the context, say you do not know.",
+  model: "openai/gpt-5-nano"
+})
 
 export async function POST(req: Request) {
     try {
@@ -15,37 +23,23 @@ export async function POST(req: Request) {
                 topK: 5,
                 inputs: { text: query },
             },
-            fields: ['persona'],
+            fields: ['persona', 'chunk_text'],
         });
-        return NextResponse.json(result);
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
-        }
-
         // Combine retrieved chunks into context
         // These chunks will be used as context for the AI to generate an answer
-        const context = results?.map((r: any) => r.content).join('\n---\n') || '';
-
+        const context = result.hits.filter(res => res._score > 0.5).map((res:any) => res.fields.chunk_text);
         // Generate answer using OpenAI with retrieved context
         // This is the "Generation" part of RAG
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are a helpful assistant. Use the provided context to answer questions. If the answer is not in the context, say you do not know.'
-                },
-                {
-                    role: 'user',
-                    content: `Context: ${context}\n\nQuestion: ${query}`
-                }
-            ],
+        const completion = await agent.generate(query, {
+            context
+        })
+        
+        return NextResponse.json({
+            answer: completion.text,
+            sources: context
         });
 
-        return NextResponse.json({
-            answer: completion.choices[0].message.content,
-            sources: results
-        });
+        
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
