@@ -7,7 +7,7 @@ const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
 const agent = new Agent({
   id: "my-agent",
   name: "My Agent",
-  instructions: "You are a helpful assistant. Use the provided context to answer questions. If the answer is not in the context, say you do not know.",
+  instructions: "You are a helpful assistant. Use the provided context to answer questions. If the answer is not in the context, say you do not know. Don't say anything else.",
   model: "openai/gpt-5-nano"
 })
 
@@ -20,10 +20,10 @@ export async function POST(req: Request) {
         const namespace = pc.index("rag-search-app", "https://rag-search-app-psm6fwc.svc.aped-4627-b74a.pinecone.io").namespace("__default__");
         const {result} = await namespace.searchRecords({
             query: {
-                topK: 5,
+                topK: 50,
                 inputs: { text: query },
             },
-            fields: ['persona', 'chunk_text'],
+            fields: ['persona', 'chunk_text', 'document'],
         });
         // Combine retrieved chunks into context
         // These chunks will be used as context for the AI to generate an answer
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         
         return NextResponse.json({
             answer: completion.text,
-            sources: context
+            sources: result.hits
         });
 
         

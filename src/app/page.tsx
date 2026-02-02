@@ -77,7 +77,7 @@ export default function Home() {
 
         {sources && sources.length > 0 && (
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-3">Sources ({sources.length}):</h2>
+            <h2 className="text-xl font-semibold mb-3">RAG search result (top {sources.length}):</h2>
             <div className="space-y-3">
               {sources.map((source, index) => (
                 <div
@@ -85,11 +85,12 @@ export default function Home() {
                   className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
                 >
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    <span className="font-medium">Source:</span>{' '}
-                    {source.metadata?.source || source.metadata?.file_name || 'Unknown'}
+                    {source.fields?.document || 'Unknown'} <br />
+                    <span className="font-bold">Score:</span>{' '}
+                    {source._score}
                   </p>
                   <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-3">
-                    {source.content}
+                    {source.fields.chunk_text}
                   </p>
                 </div>
               ))}
